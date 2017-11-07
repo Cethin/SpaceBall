@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PID : MonoBehaviour
+public class PID
 {
 	private Vector3 processVariable = Vector3.zero;
 	private Vector3 setPoint = Vector3.zero;
@@ -33,7 +33,7 @@ public class PID : MonoBehaviour
 		get { return processVariable; }
 		set
 		{
-			D = (value - ProcessVariable) / Time.fixedDeltaTime;
+			D = ((SP - value) - E) / Time.fixedDeltaTime;
 			processVariable = value;
 			I += (E * Time.fixedDeltaTime);
 		}
@@ -93,6 +93,16 @@ public class PID : MonoBehaviour
 		set{ DerivativeVal = value; }
 	}
 
+	public PID(float kp, float ki, float kd)
+	{
+		setup(new float[]{kp, ki, kd});
+	}
+
+	public PID(float[] vars)
+	{
+		setup(vars);
+	}
+
 
 
 
@@ -101,6 +111,26 @@ public class PID : MonoBehaviour
 		PV = SP;
 		I = Vector3.zero;
 		D = Vector3.zero;
+	}
+
+	public void setup(float[] vars)
+	{
+		for(int i = 0; i < 3 && i < vars.Length; i++)
+		{
+			switch(i)
+			{
+				case(0):
+					Kp = vars[i];
+					break;
+				case(1):
+					Ki = vars[i];
+					break;
+				case(2):
+					Kd = vars[i];
+					break;
+			}
+		}
+
 	}
 
 	public override string ToString()

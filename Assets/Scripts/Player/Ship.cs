@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-[RequireComponent(typeof(Rigidbody), typeof(PID))]
+[RequireComponent(typeof(Rigidbody))]
 public class Ship : MonoBehaviour
 {
 	public Vector3 thrustScale = Vector3.one;
@@ -38,8 +38,10 @@ public class Ship : MonoBehaviour
 
 	private Rigidbody rb;
 	private bool pidOn = true;
-	public PID thrustPID;
-	public PID rotPID;
+	private PID thrustPID;
+	public float[] thrustPIDVars = new float[3];
+	private PID rotPID;
+	public float[] rotPIDVars = new float[3];
 
 	public Toggle pidUI;
 
@@ -52,6 +54,7 @@ public class Ship : MonoBehaviour
 			if(pidOn)
 			{
 				thrustPID.reset();
+				rotPID.reset();
 			}
 
 			pidUI.isOn = PIDOn;
@@ -71,11 +74,14 @@ public class Ship : MonoBehaviour
 			rb = GetComponent<Rigidbody>();
 		}
 
-		if(thrustPID == null || rotPID == null)
+		if(thrustPID == null)
 		{
-			PID[] pids = GetComponents<PID>();
-			thrustPID = pids[0];
-			rotPID = pids[1];
+			thrustPID = new PID(thrustPIDVars);
+		}
+
+		if(rotPID == null)
+		{
+			rotPID = new PID(rotPIDVars);
 		}
 
 		return (rb != null && thrustPID != null && rotPID != null);

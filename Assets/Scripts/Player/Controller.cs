@@ -6,8 +6,6 @@ using UnityEngine;
 [RequireComponent(typeof(Ship))]
 public class Controller : MonoBehaviour
 {
-	private const int NUM_CONTROLS = 10;
-
 	public KeyCode forward = KeyCode.LeftShift;
 	public KeyCode back = KeyCode.LeftControl;
 	public KeyCode left = KeyCode.J;
