@@ -46,8 +46,15 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\Scripts\Controller.cs" />
-     <Compile Include="Assets\Scripts\Ship.cs" />
+     <Compile Include="Assets\Scripts\Arena\Boundaries.cs" />
+     <Compile Include="Assets\Scripts\Effects\LockDirection.cs" />
+     <Compile Include="Assets\Scripts\Effects\TextureOffsetByPosLat.cs" />
+     <Compile Include="Assets\Scripts\Effects\TextureOffsetByPosVert.cs" />
+     <Compile Include="Assets\Scripts\Player\CamFollowBall.cs" />
+     <Compile Include="Assets\Scripts\Player\Controller.cs" />
+     <Compile Include="Assets\Scripts\Player\PID.cs" />
+     <Compile Include="Assets\Scripts\Player\Ship.cs" />
+     <None Include="Assets\Shaders\FadeFromCenter.shader" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Tools/Unity 5.6.1f1/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>
