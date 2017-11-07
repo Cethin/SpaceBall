@@ -29,7 +29,22 @@ public class AIController : MonoBehaviour
 
 	private Vector3 targetPoint()
 	{
-		return target.transform.position + ((target.transform.position - goal).normalized) * target.GetComponent<SphereCollider>().radius * target.transform.localScale.x;
+		return avoidObs(target.transform.position + 
+						((target.transform.position - goal).normalized) *
+						target.GetComponent<SphereCollider>().radius * target.transform.localScale.x,
+						target.GetComponent<SphereCollider>());
+	}
+
+	private Vector3 avoidObs(Vector3 tar, SphereCollider sc)
+	{
+		if(Physics.Raycast(transform.position, tar - transform.position, tar.magnitude, gameObject.layer))
+		{
+			Vector3 fromSCtoTar = tar - sc.transform.position;
+			Vector3 fromThisToTar = tar - transform.position;
+			//Vector3 newTar = Vector3.Project(fromSCtoTar, )
+		}
+
+		return tar;
 	}
 
 	private bool setup()

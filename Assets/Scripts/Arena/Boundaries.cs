@@ -5,9 +5,11 @@ using UnityEngine;
 public class Boundaries : MonoBehaviour
 {
 	public float force = 40f;
-	BoxCollider col;
+	public float[] pidVals = new float[3]{1,1,1};
+	private BoxCollider col;
 
-	public List<Rigidbody> rbs = new List<Rigidbody>();
+	private List<Rigidbody> rbs = new List<Rigidbody>();
+	private List<PID> pids = new List<PID>();
 
 	void Start()
 	{
@@ -16,9 +18,12 @@ public class Boundaries : MonoBehaviour
 
 	void FixedUpdate ()
 	{
-		foreach(Rigidbody rb in rbs)
+		for(int i = 0; i < rbs.Count; i++)
 		{
-			rb.AddForce((posClosestToBounds(rb.transform.position) - rb.transform.position).normalized * force, ForceMode.Acceleration);
+			Rigidbody rb = rbs[i];
+			PID pid = pids[i];
+			pid.ProcessVariable = rb.velocity - (posClosestToBounds(rb.transform.position) - rb.transform.position);
+			rb.AddForce(pid.pid() * force, ForceMode.Acceleration);
 			//Debug.DrawLine(rb.transform.position, posClosestToBounds(rb.transform.position), Color.green);
 		}
 	}
@@ -29,6 +34,8 @@ public class Boundaries : MonoBehaviour
 		if(rb != null)
 		{
 			rbs.Add(rb);
+			int i = rbs.IndexOf(rb);
+			pids.Insert(i, (new PID(pidVals)));
 		}
 	}
 
@@ -37,7 +44,9 @@ public class Boundaries : MonoBehaviour
 		Rigidbody rb = otherCol.gameObject.GetComponent<Rigidbody>();
 		if(rb != null)
 		{
-			rbs.Remove(rb);
+			int i = rbs.IndexOf(rb);
+			rbs.RemoveAt(i);
+			pids.RemoveAt(i);
 		}
 	}
 
