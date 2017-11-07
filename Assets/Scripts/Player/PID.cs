@@ -129,11 +129,6 @@ public class PID : MonoBehaviour
 		return integral();
 	}
 
-	public Vector3 pi()
-	{
-		return p() + i();
-	}
-
 	public Vector3 derivative()
 	{
 		return D * Kd;
@@ -142,6 +137,11 @@ public class PID : MonoBehaviour
 	public Vector3 d()
 	{
 		return derivative();
+	}
+
+	public Vector3 pi()
+	{
+		return p() + i();
 	}
 
 	public Vector3 pd()

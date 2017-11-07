@@ -34,7 +34,7 @@ public class Controller : MonoBehaviour
 		}
 
 		ship.thrustInput(latMov());
-		ship.torque(rotMov());
+		ship.torqueInput(rotMov());
 	}
 
 	void Update()

@@ -37,10 +37,9 @@ public class Ship : MonoBehaviour
 	// ---  END THRUSTERS ---
 
 	private Rigidbody rb;
-
-	private bool wasMoveInput = false;
 	private bool pidOn = true;
-	private PID pid;
+	public PID thrustPID;
+	public PID rotPID;
 
 	public Toggle pidUI;
 
@@ -52,7 +51,7 @@ public class Ship : MonoBehaviour
 			pidOn = value;
 			if(pidOn)
 			{
-				pid.reset();
+				thrustPID.reset();
 			}
 
 			pidUI.isOn = PIDOn;
@@ -72,16 +71,19 @@ public class Ship : MonoBehaviour
 			rb = GetComponent<Rigidbody>();
 		}
 
-		if(pid == null)
+		if(thrustPID == null || rotPID == null)
 		{
-			pid = GetComponent<PID>();
+			PID[] pids = GetComponents<PID>();
+			thrustPID = pids[0];
+			rotPID = pids[1];
 		}
 
-		return (rb != null && pid != null);
+		return (rb != null && thrustPID != null && rotPID != null);
 	}
 
 	void Update()
 	{
+		//Debug.Log(thrustersString());
 		playParticles();
 	}
 
@@ -94,10 +96,14 @@ public class Ship : MonoBehaviour
 
 		if(pidOn)
 		{
-			pid.ProcessVariable = transform.InverseTransformDirection(rb.velocity);
-			thrust(pid.pid());
+			thrustPID.ProcessVariable = transform.InverseTransformDirection(rb.velocity);
+			thrust(thrustPID.pid());
 
-			//Debug.Log(pid);
+			rotPID.ProcessVariable = transform.InverseTransformDirection(rb.angularVelocity);
+			torque(rotPID.pid());
+
+			//Debug.Log(thrustPID);
+			//Debug.Log(rotPID);
 		}
 	}
 
@@ -110,7 +116,7 @@ public class Ship : MonoBehaviour
 
 		if(pidOn)
 		{
-			pid.SetPoint = input * 1000;
+			thrustPID.SetPoint = input * 1000;
 		}
 
 		else
@@ -171,16 +177,41 @@ public class Ship : MonoBehaviour
 		}
 	}
 
+	public void torqueInput(Vector3 input)
+	{
+		if(!setup())
+		{
+			return;
+		}
+
+		if(pidOn)
+		{
+			rotPID.SetPoint = input * 1000;
+		}
+
+		else
+		{
+			torque(input);
+		}
+	}
+
 	public void torque(Vector3 torque)
 	{
 		// This fucks up the pid. Let's reset it to get a working, but unstarted one.
 		// TODO: FIX THIS!
-		pid.reset();
+		thrustPID.reset();
 
 		if(!setup())
 		{
 			return;
 		}
+
+		if(torque == Vector3.zero)
+		{
+			return;
+		}
+
+		torque.Normalize();
 
 		torque.x *= torqueScale.x;
 		torque.y *= torqueScale.y;
@@ -188,6 +219,7 @@ public class Ship : MonoBehaviour
 
 		rb.AddRelativeTorque(torque);
 
+		// TODO: Add RCS thrusters for roll.
 		if(torque.z > thrustEffectBuffer)
 		{
 		}
@@ -257,5 +289,20 @@ public class Ship : MonoBehaviour
 		forBotEm.enabled = forBotOn;
 
 		resetThrusterStats();
+	}
+
+	private string thrustersString()
+	{
+		return string.Format("{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}",
+		aftOn,
+		forOn,
+		aftLeftOn,
+		aftRightOn,
+		aftTopOn,
+		aftBotOn,
+		forLeftOn,
+		forRightOn,
+		forTopOn,
+		forBotOn);
 	}
 }

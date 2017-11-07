@@ -5,13 +5,13 @@ using UnityEngine;
 public class Boundaries : MonoBehaviour
 {
 	public float force = 40f;
-	BoxCollider collider;
+	BoxCollider col;
 
 	public List<Rigidbody> rbs = new List<Rigidbody>();
 
 	void Start()
 	{
-		collider = GetComponent<BoxCollider>();
+		col = GetComponent<BoxCollider>();
 	}
 
 	void FixedUpdate ()
@@ -23,18 +23,18 @@ public class Boundaries : MonoBehaviour
 		}
 	}
 
-	void OnTriggerExit(Collider col)
+	void OnTriggerExit(Collider otherCol)
 	{
-		Rigidbody rb = col.gameObject.GetComponent<Rigidbody>();
+		Rigidbody rb = otherCol.gameObject.GetComponent<Rigidbody>();
 		if(rb != null)
 		{
 			rbs.Add(rb);
 		}
 	}
 
-	void OnTriggerEnter(Collider col)
+	void OnTriggerEnter(Collider otherCol)
 	{
-		Rigidbody rb = col.gameObject.GetComponent<Rigidbody>();
+		Rigidbody rb = otherCol.gameObject.GetComponent<Rigidbody>();
 		if(rb != null)
 		{
 			rbs.Remove(rb);
@@ -44,7 +44,7 @@ public class Boundaries : MonoBehaviour
 	private Vector3 posClosestToBounds(Vector3 pos)
 	{
 		Vector3 target = pos;
-		Vector3 extents = collider.bounds.extents;
+		Vector3 extents = col.bounds.extents;
 
 
 		if(pos.x > transform.position.x + extents.x)
