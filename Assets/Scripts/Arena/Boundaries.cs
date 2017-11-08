@@ -42,7 +42,7 @@ public class Boundaries : MonoBehaviour
 	void OnTriggerEnter(Collider otherCol)
 	{
 		Rigidbody rb = otherCol.gameObject.GetComponent<Rigidbody>();
-		if(rb != null)
+		if(rb != null && rbs.Contains(rb))
 		{
 			int i = rbs.IndexOf(rb);
 			rbs.RemoveAt(i);

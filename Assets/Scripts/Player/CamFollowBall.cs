@@ -8,7 +8,7 @@ public class CamFollowBall : MonoBehaviour
 	private Transform focus;
 	private Vector3 distance;
 	private Vector3 target;
-	private float lerpSpeed = .1f;
+	public float lerpSpeed = .1f;
 	public bool on = true;
 
 	void Start()

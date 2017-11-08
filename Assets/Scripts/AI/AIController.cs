@@ -5,9 +5,12 @@ using UnityEngine;
 [RequireComponent(typeof(Ship))]
 public class AIController : MonoBehaviour
 {
-	private Ship ship;
+	private const float rayCastBuffer = .1f;
+
 	public GameObject target;
-	public Vector3 goal;
+	public GameObject goal;
+	public LayerMask avoidanceMask;
+	private Ship ship;
 	private PID controlPID;
 	public float[] controlPIDVars = new float[3];
 
@@ -19,29 +22,53 @@ public class AIController : MonoBehaviour
 		}
 
 		//targetPID.ProcessVariable = target.transform.position;
-		controlPID.ProcessVariable =  transform.position - targetPoint(); //targetPID.pid();
+		Vector3 tarPoint = targetPoint();
+		controlPID.ProcessVariable =  transform.position -tarPoint; //targetPID.pid();
 		ship.thrustInput(controlPID.pid());
 
-		Debug.DrawLine(transform.position, targetPoint(), Color.green);
+		Debug.DrawLine(transform.position, tarPoint, Color.magenta);
 
 		//Debug.Log(controlPID);
 	}
 
 	private Vector3 targetPoint()
 	{
-		return avoidObs(target.transform.position + 
-						((target.transform.position - goal).normalized) *
-						target.GetComponent<SphereCollider>().radius * target.transform.localScale.x,
-						target.GetComponent<SphereCollider>());
+		Vector3 toGoal = goal.transform.position - target.transform.position;
+		Vector3 vel = target.GetComponent<Rigidbody>().velocity;
+		Vector3 tar = target.transform.position + (toGoal.normalized - vel.normalized);
+
+		Debug.DrawLine(target.transform.position, target.transform.position + toGoal, Color.blue);
+		Debug.DrawLine(target.transform.position, target.transform.position + vel, Color.red);
+		Debug.DrawLine(target.transform.position, tar, Color.white);
+
+		return avoidObs((tar.normalized * target.GetComponent<SphereCollider>().radius * target.transform.localScale.x) + target.transform.position);
 	}
 
-	private Vector3 avoidObs(Vector3 tar, SphereCollider sc)
+	private Vector3 avoidObs(Vector3 tar)
 	{
-		if(Physics.Raycast(transform.position, tar - transform.position, tar.magnitude, gameObject.layer))
+		Debug.DrawLine(transform.position, tar, Color.green);
+
+		RaycastHit hitInfo = new RaycastHit();
+		if(Physics.Raycast(transform.position, tar - transform.position, out hitInfo, (transform.position - tar).magnitude - rayCastBuffer, avoidanceMask))
 		{
-			Vector3 fromSCtoTar = tar - sc.transform.position;
-			Vector3 fromThisToTar = tar - transform.position;
-			//Vector3 newTar = Vector3.Project(fromSCtoTar, )
+			Collider c = hitInfo.collider;
+
+			Vector3 fromCtoTar = tar - c.transform.position;
+			//Debug.DrawLine(c.transform.position, fromCtoTar + c.transform.position, Color.red);
+			Vector3 fromCtoThis = transform.position -  c.transform.position;
+			//Debug.DrawLine(c.transform.position, fromCtoThis + c.transform.position, Color.blue);
+			Vector3 bi = bisector(fromCtoTar, fromCtoThis);
+
+			if(c.tag == "Ball")
+			{
+				float radius = ((SphereCollider)c).radius * c.transform.localScale.x;
+
+				Vector3 newTar = (bi * radius) + c.transform.position;
+				newTar *= 5;
+				//newTar = addShipSize(newTar, c.gameObject);
+				Debug.DrawLine(c.transform.position, newTar, Color.yellow);
+				return newTar;
+			}
 		}
 
 		return tar;
@@ -49,7 +76,45 @@ public class AIController : MonoBehaviour
 
 	private Vector3 bisector(Vector3 v1, Vector3 v2)
 	{
-		return v1.normalized + v2.normalized;
+		return (v1.normalized + v2.normalized).normalized;
+	}
+
+	private Vector3 addShipSize(Vector3 tarPoint, GameObject tarObj)
+	{
+		BoxCollider bc = GetComponent<BoxCollider>();
+		Vector3 extents = bc.bounds.extents * transform.localScale.x;
+
+		// Rotate extents by rotation
+		extents = transform.worldToLocalMatrix * extents;	// convert to local rotation
+
+		if(tarPoint.x < tarObj.transform.position.x)	// Tar is to the left
+		{
+			tarPoint.x -= extents.x;
+		}
+		else if(tarPoint.x > tarObj.transform.position.x)	// tar is the the right
+		{
+			tarPoint.x += extents.x;
+		}
+
+		if(tarPoint.y < tarObj.transform.position.y)	// Tar is to the left
+		{
+			tarPoint.y -= extents.y;
+		}
+		else if(tarPoint.y > tarObj.transform.position.y)	// tar is the the right
+		{
+			tarPoint.y += extents.y;
+		}
+
+		if(tarPoint.z < tarObj.transform.position.z)	// Tar is to the left
+		{
+			tarPoint.z -= extents.z;
+		}
+		else if(tarPoint.z > tarObj.transform.position.z)	// tar is the the right
+		{
+			tarPoint.z += extents.z;
+		}
+
+		return tarPoint;
 	}
 
 	private bool setup()
