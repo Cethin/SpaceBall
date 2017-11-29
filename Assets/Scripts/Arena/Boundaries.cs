@@ -22,9 +22,9 @@ public class Boundaries : MonoBehaviour
 		{
 			Rigidbody rb = rbs[i];
 			PID pid = pids[i];
-			pid.ProcessVariable = rb.velocity - (posClosestToBounds(rb.transform.position) - rb.transform.position);
-			rb.AddForce(pid.pid() * force, ForceMode.Acceleration);
-			//Debug.DrawLine(rb.transform.position, posClosestToBounds(rb.transform.position), Color.green);
+			pid.ProcessVariable = posClosestToBounds(rb.transform.position) - rb.transform.position;
+			rb.AddForce(pid.pid() * -force, ForceMode.Acceleration);
+			Debug.DrawLine(rb.transform.position, posClosestToBounds(rb.transform.position), Color.green);
 		}
 	}
 

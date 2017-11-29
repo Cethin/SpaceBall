@@ -6,10 +6,6 @@ using UnityEngine.UI;
 [RequireComponent(typeof(Rigidbody))]
 public class Ship : MonoBehaviour
 {
-	public Vector3 thrustScale = Vector3.one;
-	public Vector3 torqueScale = Vector3.one;
-
-
 	// ---  THRUSTERS ---
 	public ParticleSystem aftPart;
 	public ParticleSystem forPart;
@@ -21,8 +17,6 @@ public class Ship : MonoBehaviour
 	public ParticleSystem forRightPart;
 	public ParticleSystem forTopPart;
 	public ParticleSystem forBotPart;
-
-	public float thrustEffectBuffer = .01f;
 
 	private bool aftOn = false;
 	private bool forOn = false;
@@ -39,10 +33,7 @@ public class Ship : MonoBehaviour
 	private Rigidbody rb;
 	private bool pidOn = true;
 	private PID thrustPID;
-	public float[] thrustPIDVars = new float[3];
 	private PID rotPID;
-	public float[] rotPIDVars = new float[3];
-
 	public Toggle pidUI;
 
 	public bool PIDOn
@@ -76,12 +67,12 @@ public class Ship : MonoBehaviour
 
 		if(thrustPID == null)
 		{
-			thrustPID = new PID(thrustPIDVars);
+			thrustPID = new PID(ShipData.thrustPIDVars);
 		}
 
 		if(rotPID == null)
 		{
-			rotPID = new PID(rotPIDVars);
+			rotPID = new PID(ShipData.rotPIDVars);
 		}
 
 		return (rb != null && thrustPID != null && rotPID != null);
@@ -145,38 +136,38 @@ public class Ship : MonoBehaviour
 
 		thrust.Normalize();
 
-		thrust.x *= thrustScale.x;
-		thrust.y *= thrustScale.y;
-		thrust.z *= thrustScale.z;
+		thrust.x *= ShipData.thrustScale.x;
+		thrust.y *= ShipData.thrustScale.y;
+		thrust.z *= ShipData.thrustScale.z;
 
 		rb.AddRelativeForce(thrust, ForceMode.Force);
 
-		if(thrust.z > thrustEffectBuffer)
+		if(thrust.z > ShipData.thrustEffectBuffer)
 		{
 			aftOn = true;
 		}
-		else if(thrust.z < -thrustEffectBuffer)
+		else if(thrust.z < -ShipData.thrustEffectBuffer)
 		{
 			forOn = true;
 		}
 
-		if(thrust.x > thrustEffectBuffer)
+		if(thrust.x > ShipData.thrustEffectBuffer)
 		{
 			forLeftOn = true;
 			aftLeftOn = true;
 		}
-		else if(thrust.x < -thrustEffectBuffer)
+		else if(thrust.x < -ShipData.thrustEffectBuffer)
 		{
 			forRightOn = true;
 			aftRightOn = true;
 		}
 
-		if(thrust.y > thrustEffectBuffer)
+		if(thrust.y > ShipData.thrustEffectBuffer)
 		{
 			forBotOn = true;
 			aftBotOn = true;
 		}
-		else if(thrust.y < -thrustEffectBuffer)
+		else if(thrust.y < -ShipData.thrustEffectBuffer)
 		{
 			forTopOn = true;
 			aftTopOn = true;
@@ -219,37 +210,37 @@ public class Ship : MonoBehaviour
 
 		torque.Normalize();
 
-		torque.x *= torqueScale.x;
-		torque.y *= torqueScale.y;
-		torque.z *= torqueScale.z;
+		torque.x *= ShipData.torqueScale.x;
+		torque.y *= ShipData.torqueScale.y;
+		torque.z *= ShipData.torqueScale.z;
 
 		rb.AddRelativeTorque(torque);
 
 		// TODO: Add RCS thrusters for roll.
-		if(torque.z > thrustEffectBuffer)
+		if(torque.z > ShipData.thrustEffectBuffer)
 		{
 		}
-		else if(torque.z < -thrustEffectBuffer)
+		else if(torque.z < -ShipData.thrustEffectBuffer)
 		{
 		}
 
-		if(torque.x > thrustEffectBuffer)
+		if(torque.x > ShipData.thrustEffectBuffer)
 		{
 			forTopOn = true;
 			aftBotOn = true;
 		}
-		else if(torque.x < -thrustEffectBuffer)
+		else if(torque.x < -ShipData.thrustEffectBuffer)
 		{
 			forBotOn = true;
 			aftTopOn = true;
 		}
 
-		if(torque.y > thrustEffectBuffer)
+		if(torque.y > ShipData.thrustEffectBuffer)
 		{
 			forLeftOn = true;
 			aftRightOn = true;
 		}
-		else if(torque.y < -thrustEffectBuffer)
+		else if(torque.y < -ShipData.thrustEffectBuffer)
 		{
 			forRightOn = true;
 			aftLeftOn = true;

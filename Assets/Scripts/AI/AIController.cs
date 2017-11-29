@@ -5,14 +5,13 @@ using UnityEngine;
 [RequireComponent(typeof(Ship))]
 public class AIController : MonoBehaviour
 {
-	private const float rayCastBuffer = .1f;
-
 	public GameObject target;
 	public GameObject goal;
 	public LayerMask avoidanceMask;
 	private Ship ship;
 	private PID controlPID;
-	public float[] controlPIDVars = new float[3];
+
+	public bool debugMode = false;
 
 	void FixedUpdate ()
 	{
@@ -23,50 +22,61 @@ public class AIController : MonoBehaviour
 
 		//targetPID.ProcessVariable = target.transform.position;
 		Vector3 tarPoint = targetPoint();
-		controlPID.ProcessVariable =  transform.position -tarPoint; //targetPID.pid();
+		controlPID.ProcessVariable =  transform.position - tarPoint; //targetPID.pid();
 		ship.thrustInput(controlPID.pid());
 
-		Debug.DrawLine(transform.position, tarPoint, Color.magenta);
-
-		//Debug.Log(controlPID);
+		if(debugMode)
+		{
+			Debug.DrawLine(transform.position, tarPoint, Color.magenta);
+			//Debug.Log(controlPID);
+		}
 	}
 
 	private Vector3 targetPoint()
 	{
 		Vector3 toGoal = goal.transform.position - target.transform.position;
 		Vector3 vel = target.GetComponent<Rigidbody>().velocity;
-		Vector3 tar = target.transform.position + (toGoal.normalized - vel.normalized);
+		Vector3 tar = target.transform.position + ((((vel - toGoal).normalized)).normalized * ((target.GetComponent<SphereCollider>().radius * target.transform.localScale.x)));
+		
 
-		Debug.DrawLine(target.transform.position, target.transform.position + toGoal, Color.blue);
-		Debug.DrawLine(target.transform.position, target.transform.position + vel, Color.red);
-		Debug.DrawLine(target.transform.position, tar, Color.white);
+		if(debugMode)
+		{
+			Debug.DrawLine(target.transform.position, target.transform.position + toGoal, Color.blue);
+			Debug.DrawLine(target.transform.position, target.transform.position + vel, Color.red);
+			Debug.DrawLine(target.transform.position, tar, Color.white);
+		}
 
-		return avoidObs((tar.normalized * target.GetComponent<SphereCollider>().radius * target.transform.localScale.x) + target.transform.position);
+		return avoidObs(tar);
 	}
 
 	private Vector3 avoidObs(Vector3 tar)
 	{
-		Debug.DrawLine(transform.position, tar, Color.green);
+		if(debugMode)
+		{
+			Debug.DrawLine(transform.position, tar, Color.green);
+		}
 
 		RaycastHit hitInfo = new RaycastHit();
-		if(Physics.Raycast(transform.position, tar - transform.position, out hitInfo, (transform.position - tar).magnitude - rayCastBuffer, avoidanceMask))
+		if(Physics.Raycast(transform.position, tar - transform.position, out hitInfo, (transform.position - tar).magnitude - (AIData.rayCastBuffer + AIData.positionBuffer), avoidanceMask))
 		{
 			Collider c = hitInfo.collider;
 
 			Vector3 fromCtoTar = tar - c.transform.position;
-			//Debug.DrawLine(c.transform.position, fromCtoTar + c.transform.position, Color.red);
 			Vector3 fromCtoThis = transform.position -  c.transform.position;
-			//Debug.DrawLine(c.transform.position, fromCtoThis + c.transform.position, Color.blue);
 			Vector3 bi = bisector(fromCtoTar, fromCtoThis);
 
 			if(c.tag == "Ball")
 			{
 				float radius = ((SphereCollider)c).radius * c.transform.localScale.x;
 
-				Vector3 newTar = (bi * radius) + c.transform.position;
-				newTar *= 5;
+				Vector3 newTar = (bi * (radius + 3)) + c.transform.position;
 				//newTar = addShipSize(newTar, c.gameObject);
-				Debug.DrawLine(c.transform.position, newTar, Color.yellow);
+
+				if(debugMode)
+				{
+					Debug.DrawLine(c.transform.position, newTar, Color.yellow);
+				}
+
 				return newTar;
 			}
 		}
@@ -126,7 +136,7 @@ public class AIController : MonoBehaviour
 
 		if(controlPID == null)
 		{
-			controlPID = new PID(controlPIDVars);
+			controlPID = new PID(AIData.controlPIDVars);
 		}
 
 		return (ship != null);

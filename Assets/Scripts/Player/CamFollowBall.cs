@@ -25,15 +25,17 @@ public class CamFollowBall : MonoBehaviour
 
 		if(on)
 		{
-			target = ball.position - transform.position;
+			target = ball.position;
 		}
 		else
 		{
-			target = transform.parent.forward;
+			target = transform.parent.forward + transform.position;
 		}
 
+		transform.LookAt(Vector3.Lerp(transform.forward, (target - transform.position).normalized, lerpSpeed) + transform.position, transform.parent.up);
+
 		//transform.up = Vector3.Slerp(transform.up, transform.parent.up, lerpSpeed);
-		transform.forward = Vector3.Slerp(transform.forward, target, lerpSpeed);
+		//transform.forward = Vector3.Slerp(transform.forward, target, lerpSpeed);
 	}
 
 	public bool toggle()
