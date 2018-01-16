@@ -1,12 +1,15 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Networking;
 
 
 [RequireComponent(typeof(Ship))]
-public class Controller : MonoBehaviour
+public class Controller : NetworkBehaviour
 {
-	public string playerID = "1";
+	private static int numPlayers = 0;
+	public  const int maxLocalPlayers = 2;
+	public int playerID = 1;
 
 	public KeyCode[] forward = 		new KeyCode[]{KeyCode.LeftShift};
 	public KeyCode[] back = 		new KeyCode[]{KeyCode.LeftControl};
@@ -32,9 +35,26 @@ public class Controller : MonoBehaviour
 
 	private Ship ship;
 	private CamFollowBall camFollowBall;
+
+	public void newPlayer()
+	{
+		playerID = ++numPlayers;
+
+		// Load controls from config
+	}
+
+	void Start()
+	{
+		newPlayer();
+	}
 	
 	void FixedUpdate ()
 	{
+		if(!hasAuthority)
+		{
+			return;
+		}
+
 		if(!setup())
 		{
 			return;
@@ -46,6 +66,11 @@ public class Controller : MonoBehaviour
 
 	void Update()
 	{
+		if(!hasAuthority)
+		{
+			return;
+		}
+		
 		if(Pid())
 		{
 			ship.pidToggle();
@@ -55,6 +80,12 @@ public class Controller : MonoBehaviour
 		{
 			camFollowBall.toggle();
 		}
+	}
+
+	public static int NumPlayers
+	{
+		get{ return numPlayers; }
+		private set{ numPlayers = value; }
 	}
 
 	public bool Forward() 	{ return inputIsDown(forward) 	|| axesPos(thrustAxis); }
@@ -202,11 +233,11 @@ public class Controller : MonoBehaviour
 	{
 		if(YawLeft())
 		{
-			return 1;
+			return -1;
 		}
 		else if(YawRight())
 		{
-			return -1;
+			return 1;
 		}
 
 		return axesVal(yawAxis);

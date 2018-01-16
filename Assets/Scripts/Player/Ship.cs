@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Networking;
 
 [RequireComponent(typeof(Rigidbody))]
-public class Ship : MonoBehaviour
+public class Ship : NetworkBehaviour
 {
 	// ---  THRUSTERS ---
 	public ParticleSystem aftPart;
@@ -31,30 +32,36 @@ public class Ship : MonoBehaviour
 	// ---  END THRUSTERS ---
 
 	private Rigidbody rb;
-	private bool pidOn = true;
+	private bool pidOn = false;
 	private PID thrustPID;
 	private PID rotPID;
 	public Toggle pidUI;
 
+	[Command]
+	public void CmdSetPID(bool val)
+	{
+		pidOn = val;
+		if(pidOn)
+		{
+			thrustPID.reset();
+			rotPID.reset();
+		}
+
+		if(pidUI != null)
+		{
+			pidUI.isOn = pidOn;
+		}
+	}
+
 	public bool PIDOn
 	{
-		get { return pidOn; }
-		set
-		{
-			pidOn = value;
-			if(pidOn)
-			{
-				thrustPID.reset();
-				rotPID.reset();
-			}
-
-			pidUI.isOn = PIDOn;
-		}
+		get{ return pidOn; }
+		set{ CmdSetPID(value); }
 	}
 
 	public bool pidToggle()
 	{
-		PIDOn = !PIDOn;
+		CmdSetPID(!PIDOn);
 		return PIDOn;
 	}
 
