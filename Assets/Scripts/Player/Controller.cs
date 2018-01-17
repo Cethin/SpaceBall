@@ -26,12 +26,7 @@ public class Controller : NetworkBehaviour
 	public KeyCode[] pid = 			new KeyCode[]{KeyCode.R};
 	public KeyCode[] camMode = 		new KeyCode[]{KeyCode.F};
 
-	public string[] thrustAxis = 	new string[]{"thrust"};
-	public string[] lateralAxis = 	new string[]{"lateral"};
-	public string[] verticalAxis = 	new string[]{"vertical"};
-	public string[] pitchAxis = 	new string[]{"pitch"};
-	public string[] yawAxis = 		new string[]{"yaw"};
-	public string[] rollAxis = 		new string[]{"roll"};
+	public ControlMapping controlMap = new ControlMappingXBox();
 
 	private Ship ship;
 	private CamFollowBall camFollowBall;
@@ -46,6 +41,12 @@ public class Controller : NetworkBehaviour
 	void Start()
 	{
 		newPlayer();
+		
+		string[] joyNames = Input.GetJoystickNames();
+		foreach(string s in joyNames)
+		{
+			Debug.Log(s);
+		}
 	}
 	
 	void FixedUpdate ()
@@ -88,18 +89,18 @@ public class Controller : NetworkBehaviour
 		private set{ numPlayers = value; }
 	}
 
-	public bool Forward() 	{ return inputIsDown(forward) 	|| axesPos(thrustAxis); }
-	public bool Back() 		{ return inputIsDown(back)		|| axesNeg(thrustAxis); }
-	public bool Left() 		{ return inputIsDown(left) 		|| axesPos(lateralAxis); }
-	public bool Right() 	{ return inputIsDown(right) 	|| axesNeg(lateralAxis); }
-	public bool Up() 		{ return inputIsDown(up) 		|| axesPos(verticalAxis); }
-	public bool Down() 		{ return inputIsDown(down) 		|| axesNeg(verticalAxis); }
-	public bool PitchUp() 	{ return inputIsDown(pitchUp) 	|| axesPos(pitchAxis); }
-	public bool PitchDown() { return inputIsDown(pitchDown) || axesNeg(pitchAxis); }
-	public bool YawLeft() 	{ return inputIsDown(yawLeft) 	|| axesPos(yawAxis); }
-	public bool YawRight() 	{ return inputIsDown(yawRight) 	|| axesNeg(yawAxis); }
-	public bool RollLeft() 	{ return inputIsDown(rollLeft) 	|| axesPos(rollAxis); }
-	public bool RollRight() { return inputIsDown(rollRight) || axesNeg(rollAxis); }
+	public bool Forward() 	{ return inputIsDown(forward) 	|| ((!controlMap.invertThrust && axesPos(controlMap.thrustAxis)) 	|| (controlMap.invertThrust) && axesNeg(controlMap.thrustAxis)); }
+	public bool Back() 		{ return inputIsDown(back)		|| ((controlMap.invertThrust && axesPos(controlMap.thrustAxis)) 	|| (!controlMap.invertThrust) && axesNeg(controlMap.thrustAxis)); }
+	public bool Left() 		{ return inputIsDown(left) 		|| ((!controlMap.invertLateral && axesPos(controlMap.lateralAxis)) 	|| (controlMap.invertLateral) && axesNeg(controlMap.lateralAxis)); }
+	public bool Right() 	{ return inputIsDown(right) 	|| ((controlMap.invertLateral && axesPos(controlMap.lateralAxis)) 	|| (!controlMap.invertLateral) && axesNeg(controlMap.lateralAxis)); }
+	public bool Up() 		{ return inputIsDown(up) 		|| ((!controlMap.invertVertical && axesPos(controlMap.verticalAxis))|| (controlMap.invertVertical) && axesNeg(controlMap.verticalAxis)); }
+	public bool Down() 		{ return inputIsDown(down) 		|| ((controlMap.invertVertical && axesPos(controlMap.verticalAxis)) || (!controlMap.invertVertical) && axesNeg(controlMap.verticalAxis)); }
+	public bool PitchUp() 	{ return inputIsDown(pitchUp) 	|| ((!controlMap.invertPitch && axesPos(controlMap.pitchAxis)) 		|| (controlMap.invertPitch) && axesNeg(controlMap.pitchAxis)); }
+	public bool PitchDown() { return inputIsDown(pitchDown) || ((controlMap.invertPitch && axesPos(controlMap.pitchAxis)) 		|| (!controlMap.invertPitch) && axesNeg(controlMap.pitchAxis)); }
+	public bool YawLeft() 	{ return inputIsDown(yawLeft) 	|| ((!controlMap.invertYaw && axesPos(controlMap.yawAxis)) 			|| (controlMap.invertYaw) && axesNeg(controlMap.yawAxis)); }
+	public bool YawRight() 	{ return inputIsDown(yawRight) 	|| ((controlMap.invertYaw && axesPos(controlMap.yawAxis)) 			|| (!controlMap.invertYaw) && axesNeg(controlMap.yawAxis)); }
+	public bool RollLeft() 	{ return inputIsDown(rollLeft) 	|| ((!controlMap.invertRoll && axesPos(controlMap.rollAxis)) 		|| (controlMap.invertRoll) && axesNeg(controlMap.rollAxis)); }
+	public bool RollRight() { return inputIsDown(rollRight) || ((controlMap.invertRoll && axesPos(controlMap.rollAxis)) 		|| (!controlMap.invertRoll) && axesNeg(controlMap.rollAxis)); }
 
 	public bool Pid() { return inputDown(pid); }
 	public bool CamMode() { return inputDown(camMode); }
@@ -162,7 +163,7 @@ public class Controller : NetworkBehaviour
 	{
 		foreach(string a in axes)
 		{
-			float val = Input.GetAxis(a + playerID);
+			float val = Input.GetAxis(a + "-" + playerID);
 			if(val != 0)
 			{
 				return val;
@@ -184,7 +185,7 @@ public class Controller : NetworkBehaviour
 			return -1;
 		}
 
-		return axesVal(thrustAxis);
+		return ((controlMap.invertThrust ? -1 : 1) * axesVal(controlMap.thrustAxis));
 	}
 
 	public float lateral()
@@ -198,7 +199,7 @@ public class Controller : NetworkBehaviour
 			return -1;
 		}
 
-		return axesVal(lateralAxis);
+		return ((controlMap.invertLateral ? -1 : 1) * axesVal(controlMap.lateralAxis));
 	}
 
 	public float vertical()
@@ -212,7 +213,7 @@ public class Controller : NetworkBehaviour
 			return -1;
 		}
 
-		return axesVal(verticalAxis);
+		return ((controlMap.invertVertical ? -1 : 1) * axesVal(controlMap.verticalAxis));
 	}
 
 	public float pitch()
@@ -226,7 +227,7 @@ public class Controller : NetworkBehaviour
 			return -1;
 		}
 
-		return axesVal(pitchAxis);
+		return ((controlMap.invertPitch ? -1 : 1) * axesVal(controlMap.pitchAxis));
 	}
 
 	public float yaw()
@@ -240,7 +241,7 @@ public class Controller : NetworkBehaviour
 			return 1;
 		}
 
-		return axesVal(yawAxis);
+		return ((controlMap.invertYaw ? -1 : 1) * axesVal(controlMap.yawAxis));
 	}
 
 	public float roll()
@@ -254,7 +255,7 @@ public class Controller : NetworkBehaviour
 			return -1;
 		}
 
-		return axesVal(rollAxis);
+		return ((controlMap.invertRoll ? -1 : 1) * axesVal(controlMap.rollAxis));
 	}
 
 	private Vector3 latMov()
